@@ -53,6 +53,7 @@ namespace zStatsApi.Endpoints
                     updatedPlayer.FullName,
                     updatedPlayer.Nickname
                 );
+                
                 return Results.NoContent();
             });
 

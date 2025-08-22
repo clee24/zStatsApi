@@ -9,6 +9,7 @@ var app = builder.Build();
 
 app.MapPlayerEndpoints();
 app.MapTeamEndpoints();
+app.MapSetEndpoints();
 
 app.UseOpenApi();
 
