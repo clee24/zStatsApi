@@ -2,7 +2,7 @@ using zStatsApi.Dtos.Team;
 
 namespace zStatsApi.Dtos;
 
-public class MatchDto
+public record MatchDto
 {
     public int Id { get; set; }
     public DateTime Date { get; set; }

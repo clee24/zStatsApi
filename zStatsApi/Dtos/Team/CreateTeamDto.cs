@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace zStatsApi.Dtos.Team;
 
 public record CreateTeamDto (
-    string Name
+    [Required] string Name
 );
