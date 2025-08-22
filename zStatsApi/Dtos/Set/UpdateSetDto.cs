@@ -1,8 +1,10 @@
-namespace zStatsApi.Dtos;
+using System.ComponentModel.DataAnnotations;
+
+namespace zStatsApi.Dtos.Set;
 
 public record UpdateSetDto(
-    int SetNumber,
-    int TeamAScore,
-    int TeamBScore,
+    [Required] int SetNumber,
+    [Required] int TeamAScore,
+    [Required] int TeamBScore,
     int? WinnerTeamId
 );

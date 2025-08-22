@@ -1,9 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace zStatsApi.Dtos;
+namespace zStatsApi.Dtos.Set;
 
 public record SetDto(
-    [Required] int Id,
+    int Id,
     int MatchId,
     int SetNumber,
     int TeamAScore,
