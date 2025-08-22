@@ -1,5 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-namespace zStatsApi.Dtos;
+namespace zStatsApi.Dtos.Player;
 
 public record CreatePlayerDto (
     string FullName,

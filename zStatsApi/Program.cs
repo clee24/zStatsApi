@@ -8,6 +8,7 @@ builder.AddDependencies();
 var app = builder.Build();
 
 app.MapPlayerEndpoints();
+app.MapTeamEndpoints();
 
 app.UseOpenApi();
 

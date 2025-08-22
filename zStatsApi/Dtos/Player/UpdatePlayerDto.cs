@@ -1,4 +1,4 @@
-namespace zStatsApi.Dtos;
+namespace zStatsApi.Dtos.Player;
 
 public record UpdatePlayerDto (
     string FullName,

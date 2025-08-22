@@ -1,4 +1,5 @@
 using zStatsApi.Dtos;
+using zStatsApi.Dtos.Player;
 
 namespace zStatsApi.Endpoints
 {
@@ -41,6 +42,12 @@ namespace zStatsApi.Endpoints
             group.MapPut("/{id}", (int id, UpdatePlayerDto updatedPlayer) =>
             {
                 var index = players.FindIndex(player => player.Id == id);
+                
+                if (index == -1)
+                {
+                    return Results.NotFound();
+                }
+                
                 players[index] = new PlayerDto(
                     id,
                     updatedPlayer.FullName,

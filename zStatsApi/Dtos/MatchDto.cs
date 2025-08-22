@@ -1,6 +1,8 @@
+using zStatsApi.Dtos.Team;
+
 namespace zStatsApi.Dtos;
 
-public record MatchDto
+public class MatchDto
 {
     public int Id { get; set; }
     public DateTime Date { get; set; }
