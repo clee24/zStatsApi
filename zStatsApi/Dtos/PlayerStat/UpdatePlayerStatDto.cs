@@ -1,6 +1,6 @@
 namespace zStatsApi.Dtos.PlayerStats;
 
-public record UpdatePlayerStatsDto(
+public record UpdatePlayerStatDto(
     int HittingKills,
     int HittingErrors,
     int HittingAttempts,

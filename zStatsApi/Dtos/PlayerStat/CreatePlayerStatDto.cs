@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace zStatsApi.Dtos.PlayerStats;
 
-public record CreatePlayerStatsDto(
+public record CreatePlayerStatDto(
     [Required] int PlayerId,
     [Required] int SetId,
     int HittingKills,
