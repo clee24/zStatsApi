@@ -1,7 +1,9 @@
-using TheSampleApi.Startup;
+using zStatsApi.Startup;
 using zStatsApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connString = builder.Configuration.GetConnectionString("zStatsApi");
 
 builder.AddDependencies();
 

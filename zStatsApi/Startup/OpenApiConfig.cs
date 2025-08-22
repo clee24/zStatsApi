@@ -1,6 +1,6 @@
 using Scalar.AspNetCore;
 
-namespace TheSampleApi.Startup;
+namespace zStatsApi.Startup;
 
 public static class OpenApiConfig
 {

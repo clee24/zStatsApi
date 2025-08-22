@@ -1,4 +1,4 @@
-namespace TheSampleApi.Startup;
+namespace zStatsApi.Startup;
 
 public static class DependenciesConfig
 {
