@@ -1,4 +1,3 @@
-using zStatsApi.Dtos;
 using zStatsApi.Dtos.Player;
 
 namespace zStatsApi.Endpoints
@@ -17,7 +16,8 @@ namespace zStatsApi.Endpoints
 
         public static WebApplication MapPlayerEndpoints(this WebApplication app)
         {
-            var group = app.MapGroup("/players");
+            var group = app.MapGroup("/players")
+                .WithParameterValidation();
             
             // GET /players
             group.MapGet("/", () => players);
@@ -33,7 +33,7 @@ namespace zStatsApi.Endpoints
                     players.Count + 1,
                     newPlayer.FullName
                 );
-                
+
                 players.Add(player);
                 return Results.CreatedAtRoute(GetPlayerEndpointName, new { id = player.Id }, player);
             });
@@ -42,18 +42,18 @@ namespace zStatsApi.Endpoints
             group.MapPut("/{id}", (int id, UpdatePlayerDto updatedPlayer) =>
             {
                 var index = players.FindIndex(player => player.Id == id);
-                
+
                 if (index == -1)
                 {
                     return Results.NotFound();
                 }
-                
+
                 players[index] = new PlayerDto(
                     id,
                     updatedPlayer.FullName,
                     updatedPlayer.Nickname
                 );
-                
+
                 return Results.NoContent();
             });
 

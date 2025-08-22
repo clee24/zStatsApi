@@ -1,4 +1,3 @@
-using zStatsApi.Dtos;
 using zStatsApi.Dtos.Team;
 
 namespace zStatsApi.Endpoints;
@@ -15,7 +14,8 @@ public static class TeamEndpoints
 
     public static WebApplication MapTeamEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/teams");
+        var group = app.MapGroup("/teams")
+            .WithParameterValidation();
         
         // GET /teams
         group.MapGet("/", () => teams);

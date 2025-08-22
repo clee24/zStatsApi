@@ -1,4 +1,4 @@
-using zStatsApi.Dtos;
+using zStatsApi.Dtos.Set;
 
 namespace zStatsApi.Endpoints;
 
@@ -15,7 +15,8 @@ public static class SetEndpoints
 
     public static WebApplication MapSetEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/sets");
+        var group = app.MapGroup("/sets")
+            .WithParameterValidation();
         
         // GET /sets
         group.MapGet("/", () => sets);
@@ -33,7 +34,7 @@ public static class SetEndpoints
                 newSet.SetNumber,
                 newSet.TeamAScore,
                 newSet.TeamBScore,
-                null 
+                null
             );
 
             sets.Add(set);
@@ -57,7 +58,7 @@ public static class SetEndpoints
                 TeamBScore = updatedSet.TeamBScore,
                 WinnerTeamId = updatedSet.WinnerTeamId
             };
-            
+
             return Results.NoContent();
         });
 
