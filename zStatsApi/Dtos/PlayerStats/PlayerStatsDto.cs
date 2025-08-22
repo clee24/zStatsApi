@@ -1,5 +1,5 @@
 namespace zStatsApi.Dtos.PlayerStats;
-public record PlayerStatDto(
+public record PlayerStatsDto(
     int Id,
     int PlayerId,
     int SetId,
