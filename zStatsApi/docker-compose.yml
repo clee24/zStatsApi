@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: zStatsApi
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"    
+    volumes:
+      - zstatsdata:/var/lib/postgresql/data
+
+volumes:
+  zstatsdata:
