@@ -15,6 +15,18 @@ public static class MatchMapping
             TeamBId = match.TeamBId,
         };
     }
+    
+    public static Match ToEntity(this UpdateMatchDto match, int id)
+    {
+        return new ()
+        {
+            Id = id,
+            Date = match.Date,
+            Location = match.Location,
+            TeamAId = match.TeamAId,
+            TeamBId = match.TeamBId,
+        };
+    }
 
     public static MatchDto ToDto(this Match match)
     {

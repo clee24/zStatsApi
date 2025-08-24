@@ -9,11 +9,6 @@ services:
       - "5433:5432"
     volumes:
       - zstatsdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
 volumes:
   zstatsdata:

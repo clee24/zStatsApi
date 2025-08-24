@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using zStatsApi.Data;
 using zStatsApi.Dtos.Match;
 using zStatsApi.Entities;
@@ -8,23 +9,25 @@ namespace zStatsApi.Endpoints;
 public static class MatchEndpoints
 {
     const string GetMatchEndpointName = "GetMatch";
-
-    private static readonly List<MatchDto> matches =
-    [
-        new(1, new DateTime(2025, 01, 15), "Whiskey Island", 1, 2, null),
-        new(2, new DateTime(2025, 01, 20), "Mulberry's", 2, 1, 2)
-    ];
-
+    
     public static WebApplication MapMatchEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/matches");
         
         // GET /matches
-        group.MapGet("/", () => matches);
+        group.MapGet("/", (ZStatsContext dbContext) => 
+            dbContext.Matches
+                .Select(match => match.ToDto()));
 
         // GET /matches/{id}
-        group.MapGet("/{id}", (int id) => matches.Find(match => match.Id == id))
-            .WithName(GetMatchEndpointName);
+        group.MapGet("/{id}", (int id, ZStatsContext dbContext) =>
+        {
+            var match = dbContext.Matches.Find(id);
+            
+            return match is null ?
+                Results.NotFound() : Results.Ok(match.ToDto());
+        })
+        .WithName(GetMatchEndpointName);
 
         // POST /matches
         group.MapPost("/", (CreateMatchDto newMatch, ZStatsContext dbContext) =>
@@ -43,32 +46,33 @@ public static class MatchEndpoints
         });
 
         // PUT /matches/{id}
-        group.MapPut("/{id}", (int id, UpdateMatchDto updatedMatch) =>
+        group.MapPut("/{id}", (int id, UpdateMatchDto updatedMatch, ZStatsContext dbContext) =>
         {
-            var index = matches.FindIndex(m => m.Id == id);
+            var existingMatch = dbContext.Matches.Find(id);
 
-            if (index == -1)
+            if (existingMatch is null)
             {
                 return Results.NotFound();
             }
-
-            var existingMatch = matches[index];
-
-            matches[index] = existingMatch with
-            {
-                Date = updatedMatch.Date,
-                Location = updatedMatch.Location,
-                TeamAId = updatedMatch.TeamAId,
-                TeamBId = updatedMatch.TeamBId,
-                WinnerTeamId = updatedMatch.WinnerTeamId
-            };
+            
+            dbContext.Entry(existingMatch)
+                .CurrentValues
+                .SetValues(updatedMatch.ToEntity(id));
+            
+            dbContext.SaveChanges();
+            
             return Results.NoContent();
         });
 
         // DELETE /matches/{id}
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id, ZStatsContext dbContext) =>
         {
-            matches.RemoveAll(m => m.Id == id);
+            dbContext.Matches
+                .Where(match => match.Id == id)
+                .ExecuteDelete();
+            
+            dbContext.SaveChanges();
+            
             return Results.NoContent();
         });
 
