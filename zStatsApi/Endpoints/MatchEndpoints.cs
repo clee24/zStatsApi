@@ -1,4 +1,7 @@
+using zStatsApi.Data;
 using zStatsApi.Dtos.Match;
+using zStatsApi.Entities;
+using zStatsApi.Mapping;
 
 namespace zStatsApi.Endpoints;
 
@@ -24,19 +27,19 @@ public static class MatchEndpoints
             .WithName(GetMatchEndpointName);
 
         // POST /matches
-        group.MapPost("/", (CreateMatchDto newMatch) =>
+        group.MapPost("/", (CreateMatchDto newMatch, ZStatsContext dbContext) =>
         {
-            MatchDto match = new(
-                matches.Count + 1,
-                newMatch.Date,
-                newMatch.Location,
-                newMatch.TeamAId,
-                newMatch.TeamBId,
-                null
-            );
-
-            matches.Add(match);
-            return Results.CreatedAtRoute(GetMatchEndpointName, new { id = match.Id }, match);
+            Match match = newMatch.ToEntity();
+            match.TeamA = dbContext.Teams.Find(newMatch.TeamAId)!;
+            match.TeamB = dbContext.Teams.Find(newMatch.TeamBId)!;
+            
+            dbContext.Matches.Add(match);
+            dbContext.SaveChanges();
+            
+            return Results.CreatedAtRoute(
+                GetMatchEndpointName, 
+                new { id = match.Id }, 
+                match.ToDto());
         });
 
         // PUT /matches/{id}
