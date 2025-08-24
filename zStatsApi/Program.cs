@@ -18,15 +18,15 @@ builder.AddDependencies();
 
 var app = builder.Build();
 
+app.UseOpenApi();
+app.UseHttpsRedirection();
+
 app.MapPlayerEndpoints();
 app.MapTeamEndpoints();
 app.MapSetEndpoints();
 app.MapMatchEndpoints();
-
 app.MapPlayerStatEndpoints();
 
-app.UseOpenApi();
-
-app.UseHttpsRedirection();
+app.MigrateDb();
 
 app.Run();
