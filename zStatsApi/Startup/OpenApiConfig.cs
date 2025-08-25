@@ -16,7 +16,7 @@ public static class OpenApiConfig
             app.MapOpenApi();
             app.MapScalarApiReference(options => 
             {
-                options.Title = "The Sample API";
+                options.Title = "zStatsApi";
                 options.Theme = ScalarTheme.BluePlanet;
                 options.Layout = ScalarLayout.Modern;
                 options.HideClientButton = true;
