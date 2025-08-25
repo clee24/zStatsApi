@@ -33,6 +33,15 @@ public static class PlayerStatEndpoints
         // POST /playerstat
         group.MapPost("/", (CreatePlayerStatDto newStat, ZStatsContext dbContext) =>
         {
+            var playerExists = dbContext.Players.Any(p => p.Id == newStat.PlayerId);
+            var teamExists = dbContext.Teams.Any(t => t.Id == newStat.TeamId);
+            var setExists = dbContext.Sets.Any(s => s.Id == newStat.SetId);
+
+            if (!playerExists || !teamExists || !setExists)
+            {
+                return Results.NotFound("One or more of the provided foreign keys (PlayerId, TeamId, SetId) do not exist.");
+            }
+            
             PlayerStat stat = newStat.ToEntity();
             
             dbContext.PlayerStats.Add(stat);
