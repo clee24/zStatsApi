@@ -1,4 +1,8 @@
+using zStatsApi.Data;
 using zStatsApi.Dtos.Player;
+using zStatsApi.Entities;
+using zStatsApi.Mapping;
+using Microsoft.EntityFrameworkCore;
 
 namespace zStatsApi.Endpoints
 {
@@ -6,61 +10,69 @@ namespace zStatsApi.Endpoints
     {
         const string GetPlayerEndpointName = "GetPlayer";
 
-        private  static readonly List<PlayerDto> players =
-        [
-            new(1, "Chris"),
-            new(2, "Trinity"),
-            new(3, "Zey"),
-            new(4, "Jimmy")
-        ];
-
         public static WebApplication MapPlayerEndpoints(this WebApplication app)
         {
             var group = app.MapGroup("/players")
                 .WithParameterValidation();
-            
+
             // GET /players
-            group.MapGet("/", () => players);
-            
+            group.MapGet("/", (ZStatsContext dbContext) =>
+                dbContext.Players
+                    .Select(player => player.ToDto()));
+
             // GET /players/id
-            group.MapGet("/{id}", (int id) => players.Find(player => player.Id == id))
+            group.MapGet("/{id}", (int id, ZStatsContext dbContext) =>
+                {
+                    var player = dbContext.Players.Find(id);
+
+                    return player is null ?
+                        Results.NotFound() : Results.Ok(player.ToDto());
+                })
                 .WithName(GetPlayerEndpointName);
 
             // POST /players
-            group.MapPost("/", (CreatePlayerDto newPlayer) =>
+            group.MapPost("/", (CreatePlayerDto newPlayer, ZStatsContext dbContext) =>
             {
-                PlayerDto player = new(
-                    players.Count + 1,
-                    newPlayer.FullName
-                );
+                Player player = newPlayer.ToEntity();
+                
+                dbContext.Players.Add(player);
+                dbContext.SaveChanges();
 
-                players.Add(player);
-                return Results.CreatedAtRoute(GetPlayerEndpointName, new { id = player.Id }, player);
+                return Results.CreatedAtRoute(
+                    GetPlayerEndpointName,
+                    new { id = player.Id },
+                    player.ToDto()
+                );
             });
 
             // PUT /players/id
-            group.MapPut("/{id}", (int id, UpdatePlayerDto updatedPlayer) =>
+            group.MapPut("/{id}", (int id, UpdatePlayerDto updatedPlayer, ZStatsContext dbContext) =>
             {
-                var index = players.FindIndex(player => player.Id == id);
+                var existingPlayer = dbContext.Players.Find(id);
 
-                if (index == -1)
+                if (existingPlayer is null)
                 {
                     return Results.NotFound();
                 }
 
-                players[index] = new PlayerDto(
-                    id,
-                    updatedPlayer.FullName,
-                    updatedPlayer.Nickname
-                );
+                dbContext.Entry(existingPlayer)
+                    .CurrentValues
+                    .SetValues(updatedPlayer.ToEntity(id));
+                    
+                dbContext.SaveChanges();
 
                 return Results.NoContent();
             });
 
             // DELETE /players/id
-            group.MapDelete("/{id}", (int id) =>
+            group.MapDelete("/{id}", (int id, ZStatsContext dbContext) =>
             {
-                players.RemoveAll(player => player.Id == id);
+                dbContext.Players
+                    .Where(player => player.Id == id)
+                    .ExecuteDelete();
+
+                dbContext.SaveChanges();
+
                 return Results.NoContent();
             });
 

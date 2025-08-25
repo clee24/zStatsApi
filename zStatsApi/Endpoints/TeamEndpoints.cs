@@ -1,4 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using zStatsApi.Data;
 using zStatsApi.Dtos.Team;
+using zStatsApi.Entities;
+using zStatsApi.Mapping;
 
 namespace zStatsApi.Endpoints;
 
@@ -6,58 +10,69 @@ public static class TeamEndpoints
 {
     const string GetTeamEndpointName = "GetTeam";
 
-    private static readonly List<TeamDto> teams =
-    [
-        new(1, "The Holy Trinity"),
-        new(2, "Double Trouble")
-    ];
-
     public static WebApplication MapTeamEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/teams")
             .WithParameterValidation();
         
         // GET /teams
-        group.MapGet("/", () => teams);
+        group.MapGet("/", (ZStatsContext dbContext) => 
+            dbContext.Teams
+                .Select(team => team.ToDto()));
         
         // GET /teams/id
-        group.MapGet("/{id}", (int id) => teams.Find(team => team.Id == id))
+        group.MapGet("/{id}", (int id, ZStatsContext dbContext) =>
+            {
+                var team = dbContext.Teams.Find(id);
+                
+                return team is null ?
+                    Results.NotFound() : Results.Ok(team.ToDto());
+            })
             .WithName(GetTeamEndpointName);
 
         // POST /teams
-        group.MapPost("/", (CreateTeamDto newTeam) =>
+        group.MapPost("/", (CreateTeamDto newTeam, ZStatsContext dbContext) =>
         {
-            TeamDto team = new(
-                teams.Count + 1,
-                newTeam.Name
-            );
+            Team team = newTeam.ToEntity();
             
-            teams.Add(team);
-            return Results.CreatedAtRoute(GetTeamEndpointName, new { id = team.Id }, team);
+            dbContext.Teams.Add(team);
+            dbContext.SaveChanges();
+            
+            return Results.CreatedAtRoute(
+                GetTeamEndpointName,
+                new { id = team.Id },
+                team.ToDto()
+            );
         });
 
         // PUT /teams/id
-        group.MapPut("/{id}", (int id, UpdateTeamDto updatedTeam) =>
+        group.MapPut("/{id}", (int id, UpdateTeamDto updatedTeam, ZStatsContext dbContext) =>
         {
-            var index = teams.FindIndex(team => team.Id == id);
+            var existingTeam = dbContext.Teams.Find(id);
 
-            if (index == -1)
+            if (existingTeam is null)
             {
                 return Results.NotFound();
             }
 
-            teams[index] = new TeamDto(
-                id,
-                updatedTeam.Name
-            );
+            dbContext.Entry(existingTeam)
+                .CurrentValues
+                .SetValues(updatedTeam.ToEntity(id));
+            
+            dbContext.SaveChanges();
             
             return Results.NoContent();
         });
 
         // DELETE /teams/id
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id, ZStatsContext dbContext) =>
         {
-            teams.RemoveAll(team => team.Id == id);
+            dbContext.Teams
+                .Where(team => team.Id == id)
+                .ExecuteDelete();
+                
+            dbContext.SaveChanges();
+            
             return Results.NoContent();
         });
 

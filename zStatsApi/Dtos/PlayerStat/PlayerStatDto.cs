@@ -1,7 +1,9 @@
 namespace zStatsApi.Dtos.PlayerStats;
+
 public record PlayerStatDto(
     int Id,
     int PlayerId,
+    int TeamId,
     int SetId,
     int HittingKills,
     int HittingErrors,

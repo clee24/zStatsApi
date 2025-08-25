@@ -4,6 +4,7 @@ namespace zStatsApi.Dtos.PlayerStats;
 
 public record CreatePlayerStatDto(
     [Required] int PlayerId,
+    [Required] int TeamId,
     [Required] int SetId,
     int HittingKills,
     int HittingErrors,

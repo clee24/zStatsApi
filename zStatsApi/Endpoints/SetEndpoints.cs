@@ -1,4 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using zStatsApi.Data;
 using zStatsApi.Dtos.Set;
+using zStatsApi.Entities;
+using zStatsApi.Mapping;
 
 namespace zStatsApi.Endpoints;
 
@@ -6,66 +10,69 @@ public static class SetEndpoints
 {
     const string GetSetEndpointName = "GetSet";
 
-    private static readonly List<SetDto> sets =
-    [
-        new(1, 1, 1, 25, 23, 1),
-        new(2, 1, 2, 21, 25, 2),
-        new(3, 1, 3, 15, 4, 1)
-    ];
-
     public static WebApplication MapSetEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/sets")
             .WithParameterValidation();
         
         // GET /sets
-        group.MapGet("/", () => sets);
+        group.MapGet("/", (ZStatsContext dbContext) =>
+            dbContext.Sets
+                .Select(set => set.ToDto()));
 
         // GET /sets/{id}
-        group.MapGet("/{id}", (int id) => sets.Find(set => set.Id == id)
-        ).WithName(GetSetEndpointName);
+        group.MapGet("/{id}", (int id, ZStatsContext dbContext) =>
+            {
+                var set = dbContext.Sets.Find(id);
+                
+                return set is null ?
+                    Results.NotFound() : Results.Ok(set.ToDto());
+            })
+            .WithName(GetSetEndpointName);
 
         // POST /sets
-        group.MapPost("/", (CreateSetDto newSet) =>
+        group.MapPost("/", (CreateSetDto newSet, ZStatsContext dbContext) =>
         {
-            SetDto set = new(
-                sets.Count + 1,
-                newSet.MatchId,
-                newSet.SetNumber,
-                newSet.TeamAScore,
-                newSet.TeamBScore,
-                null
+            Set set = newSet.ToEntity();
+            
+            dbContext.Sets.Add(set);
+            dbContext.SaveChanges();
+            
+            return Results.CreatedAtRoute(
+                GetSetEndpointName,
+                new { id = set.Id },
+                set.ToDto()
             );
-
-            sets.Add(set);
-            return Results.CreatedAtRoute(GetSetEndpointName, new { id = set.Id }, set);
         });
 
         // PUT /sets/{id}
-        group.MapPut("/{id}", (int id, UpdateSetDto updatedSet) =>
+        group.MapPut("/{id}", (int id, UpdateSetDto updatedSet, ZStatsContext dbContext) =>
         {
-            var index = sets.FindIndex(s => s.Id == id);
+            var existingSet = dbContext.Sets.Find(id);
 
-            if (index == -1)
+            if (existingSet is null)
             {
                 return Results.NotFound();
             }
 
-            sets[index] = sets[index] with
-            {
-                SetNumber = updatedSet.SetNumber,
-                TeamAScore = updatedSet.TeamAScore,
-                TeamBScore = updatedSet.TeamBScore,
-                WinnerTeamId = updatedSet.WinnerTeamId
-            };
-
+            dbContext.Entry(existingSet)
+                .CurrentValues
+                .SetValues(updatedSet.ToEntity(id));
+            
+            dbContext.SaveChanges();
+            
             return Results.NoContent();
         });
 
         // DELETE /sets/{id}
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id, ZStatsContext dbContext) =>
         {
-            sets.RemoveAll(s => s.Id == id);
+            dbContext.Sets
+                .Where(s => s.Id == id)
+                .ExecuteDelete();
+
+            dbContext.SaveChanges();
+            
             return Results.NoContent();
         });
 
