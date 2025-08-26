@@ -3,6 +3,7 @@ using zStatsApi.Data;
 using zStatsApi.Dtos.Match;
 using zStatsApi.Entities;
 using zStatsApi.Mapping;
+using zStatsApi.Services;
 
 namespace zStatsApi.Endpoints;
 
@@ -30,22 +31,38 @@ public static class MatchEndpoints
         .WithName(GetMatchEndpointName);
 
         // POST /matches
-        group.MapPost("/", (CreateMatchDto newMatch, ZStatsContext dbContext) =>
+        group.MapPost("/", (CreateMatchDto newMatch, CreateMatchSetService service) =>
         {
-            Match match = newMatch.ToEntity();
-            match.TeamA = dbContext.Teams.Find(newMatch.TeamAId)!;
-            match.TeamB = dbContext.Teams.Find(newMatch.TeamBId)!;
-            
-            dbContext.Matches.Add(match);
-            dbContext.SaveChanges();
-            
-            return Results.CreatedAtRoute(
-                GetMatchEndpointName, 
-                new { id = match.Id }, 
-                match.ToDto());
+            try
+            {
+                var match = service.CreateMatchAndInitialSet(newMatch);
+                return Results.Created($"/matches/{match.Id}", match.ToDto());
+            }
+            catch (ArgumentException ex)
+            { return Results.BadRequest(ex.Message);
+            }
         });
 
         // PUT /matches/{id}
+        group.MapPut("/{id}", (int id, UpdateMatchDto updatedMatch, ZStatsContext dbContext) =>
+        {
+            var existingMatch = dbContext.Matches.Find(id);
+
+            if (existingMatch is null)
+            {
+                return Results.NotFound();
+            }
+            
+            dbContext.Entry(existingMatch)
+                .CurrentValues
+                .SetValues(updatedMatch.ToEntity(id));
+            
+            dbContext.SaveChanges();
+            
+            return Results.NoContent();
+        });
+        
+        // PUT /matches/{id} with winner
         group.MapPut("/{id}", (int id, UpdateMatchDto updatedMatch, ZStatsContext dbContext) =>
         {
             var existingMatch = dbContext.Matches.Find(id);
