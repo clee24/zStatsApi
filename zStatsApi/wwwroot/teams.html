@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teams</title>
+</head>
+<body>
+<h1>Teams</h1>
+
+<table border="1" id="teamsTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    const apiBase = "/teams";
+
+    async function loadTeams() {
+        const res = await fetch(apiBase);
+        if (!res.ok) {
+            alert("Failed to load teams");
+            return;
+        }
+
+        const teams = await res.json();
+        const tbody = document.querySelector("#teamsTable tbody");
+        tbody.innerHTML = "";
+
+        teams.forEach(team => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>${team.id}</td>
+            <td>${team.name}</td>
+        `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Initial load
+    loadTeams();
+</script>
+</body>
+</html>

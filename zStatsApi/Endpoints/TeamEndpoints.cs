@@ -3,6 +3,7 @@ using zStatsApi.Data;
 using zStatsApi.Dtos.Team;
 using zStatsApi.Entities;
 using zStatsApi.Mapping;
+using zStatsApi.Services;
 
 namespace zStatsApi.Endpoints;
 
@@ -21,59 +22,50 @@ public static class TeamEndpoints
                 .Select(team => team.ToDto()));
         
         // GET /teams/id
-        group.MapGet("/{id}", (int id, ZStatsContext dbContext) =>
+        group.MapGet("/{id}", async (int id, ZStatsContext dbContext) =>
             {
-                var team = dbContext.Teams.Find(id);
-                
+                var team = await dbContext.Teams
+                    .Include(t => t.TeamPlayers)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
                 return team is null ?
                     Results.NotFound() : Results.Ok(team.ToDto());
             })
             .WithName(GetTeamEndpointName);
 
         // POST /teams
-        group.MapPost("/", (CreateTeamDto newTeam, ZStatsContext dbContext) =>
+        group.MapPost("/", async (CreateTeamDto dto, TeamService service) =>
         {
-            Team team = newTeam.ToEntity();
-            
-            dbContext.Teams.Add(team);
-            dbContext.SaveChanges();
-            
-            return Results.CreatedAtRoute(
-                GetTeamEndpointName,
-                new { id = team.Id },
-                team.ToDto()
-            );
+            var team = await service.CreateTeamAsync(dto);
+            return Results.Created($"/teams/{team.Id}", team.ToDto());
         });
 
         // PUT /teams/id
-        group.MapPut("/{id}", (int id, UpdateTeamDto updatedTeam, ZStatsContext dbContext) =>
+        group.MapPut("/{id}", async (int id, UpdateTeamDto dto, TeamService service) =>
         {
-            var existingTeam = dbContext.Teams.Find(id);
-
-            if (existingTeam is null)
+            try
             {
-                return Results.NotFound();
+                await service.UpdateTeamAsync(id, dto);
+                return Results.NoContent();
             }
-
-            dbContext.Entry(existingTeam)
-                .CurrentValues
-                .SetValues(updatedTeam.ToEntity(id));
-            
-            dbContext.SaveChanges();
-            
-            return Results.NoContent();
+            catch (ArgumentException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
         });
 
         // DELETE /teams/id
-        group.MapDelete("/{id}", (int id, ZStatsContext dbContext) =>
+        group.MapDelete("/{id}", async (int id, TeamService service) =>
         {
-            dbContext.Teams
-                .Where(team => team.Id == id)
-                .ExecuteDelete();
-                
-            dbContext.SaveChanges();
-            
-            return Results.NoContent();
+            try
+            {
+                await service.DeleteTeamAsync(id);
+                return Results.NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
         });
 
         return app;

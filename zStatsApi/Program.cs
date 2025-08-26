@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ZStatsContext>(options =>
 
 builder.AddDependencies();
 builder.Services.AddScoped<CreateMatchSetService>();
+builder.Services.AddScoped<TeamService>();
 
 var app = builder.Build();
 
