@@ -9,7 +9,7 @@ public static class PlayerMapping
     {
         return new Player
         {
-            Name = player.FullName
+            Name = player.Name
         };
     }
     
@@ -18,7 +18,7 @@ public static class PlayerMapping
         return new Player
         {
             Id = id,
-            Name = player.FullName,
+            Name = player.Name,
         };
     }
 
@@ -26,8 +26,7 @@ public static class PlayerMapping
     {
         return new PlayerDto(
             player.Id,
-            player.Name,
-            player.Nickname
+            player.Name
         );
     }
 }
