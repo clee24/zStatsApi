@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Players</title>
+</head>
+<body>
+<h1>Players</h1>
+
+<!-- Players Table -->
+<table border="1" id="playersTable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Nickname</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h2 id="formTitle">Add New Player</h2>
+<form id="playerForm">
+    <input type="hidden" id="playerId"> <!-- used for edit mode -->
+
+    <label>
+        Full Name:
+        <input type="text" id="playerFullName" required>
+    </label>
+    <br>
+    <label>
+        Nickname:
+        <input type="text" id="playerNickname">
+    </label>
+    <br>
+    <button type="submit">Save Player</button>
+    <button type="button" id="cancelEdit" style="display:none;">Cancel</button>
+</form>
+
+<script>
+    const apiBase = "/players";
+    let editingId = null;
+
+    async function loadPlayers() {
+        try {
+            const res = await fetch(apiBase);
+            if (!res.ok) throw new Error(`Error: ${res.status}`);
+            const players = await res.json();
+
+            const tbody = document.querySelector("#playersTable tbody");
+            tbody.innerHTML = "";
+
+            players.forEach(p => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.fullName}</td>
+            <td>${p.nickname ?? ""}</td>
+            <td>
+              <button onclick="editPlayer(${p.id}, '${p.fullName}', '${p.nickname ?? ""}')">Edit</button>
+            </td>
+          `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            alert("Failed to load players: " + err.message);
+        }
+    }
+
+    async function savePlayer(event) {
+        event.preventDefault();
+
+        const fullName = document.getElementById("playerFullName").value;
+        const nickname = document.getElementById("playerNickname").value || null;
+
+        try {
+            if (editingId) {
+                // Update existing player
+                const res = await fetch(`${apiBase}/${editingId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fullName, nickname })
+                });
+
+                if (!res.ok) throw new Error(`Error: ${res.status}`);
+            } else {
+                // Add new player
+                const res = await fetch(apiBase, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fullName, nickname })
+                });
+
+                if (!res.ok) throw new Error(`Error: ${res.status}`);
+            }
+
+            resetForm();
+            loadPlayers();
+        } catch (err) {
+            alert("Failed to save player: " + err.message);
+        }
+    }
+
+    function editPlayer(id, fullName, nickname) {
+        editingId = id;
+        document.getElementById("playerId").value = id;
+        document.getElementById("playerFullName").value = fullName;
+        document.getElementById("playerNickname").value = nickname;
+        document.getElementById("formTitle").textContent = "Edit Player";
+        document.getElementById("cancelEdit").style.display = "inline";
+    }
+
+    function resetForm() {
+        editingId = null;
+        document.getElementById("playerForm").reset();
+        document.getElementById("formTitle").textContent = "Add New Player";
+        document.getElementById("cancelEdit").style.display = "none";
+    }
+
+    document.getElementById("playerForm").addEventListener("submit", savePlayer);
+    document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+    // Initial load
+    loadPlayers();
+</script>
+</body>
+</html>

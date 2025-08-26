@@ -23,6 +23,13 @@ var app = builder.Build();
 app.UseOpenApi();
 app.UseHttpsRedirection();
 
+
+app.UseStaticFiles();
+app.MapGet("/", async context =>
+{
+    context.Response.Redirect("/index.html");
+});
+
 app.MapPlayerEndpoints();
 app.MapTeamEndpoints();
 app.MapSetEndpoints();
