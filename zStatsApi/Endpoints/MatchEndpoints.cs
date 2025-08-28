@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using zStatsApi.ApiModels.Match;
 using zStatsApi.Data;
 using zStatsApi.Dtos.Match;
 using zStatsApi.Entities;
@@ -31,13 +32,21 @@ public static class MatchEndpoints
         .WithName(GetMatchEndpointName);
 
         // POST /matches
-        group.MapPost("/", (CreateMatchDto newMatch, CreateMatchSetService service) =>
+        group.MapPost("/", (CreateMatchApiModel newMatch, CreateMatchSetService service) =>
         {
+            var matchDto = new CreateMatchDto(
+                newMatch.Date, 
+                newMatch.Location,
+                newMatch.TeamAId,
+                newMatch.TeamBId
+            );
+            
             try
             {
-                var match = service.CreateMatchAndInitialSet(newMatch);
+                var match = service.CreateMatchAndInitialSet(matchDto);
                 return Results.Created($"/matches/{match.Id}", match.ToDto());
             }
+            
             catch (ArgumentException ex)
             { return Results.BadRequest(ex.Message);
             }
