@@ -25,10 +25,17 @@ public static class TeamMapping
 
     public static TeamDto ToDto(this Team team)
     {
+        var playerRanks = team.TeamPlayers
+            .Select(tp => tp.Player.Rank)
+            .ToList();
+
+        var rankLabel = RankHelper.GetTeamRankLabel(playerRanks);
+
         return new TeamDto(
             team.Id,
             team.Name,
-            RankHelper.GetTeamRankLabel(team.TeamPlayers.Select(tp => tp.Player.Rank))
+            rankLabel
         );
     }
+
 }
