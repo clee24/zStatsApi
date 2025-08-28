@@ -12,6 +12,7 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Rank</th>
         <th>Actions</th>
     </tr>
     </thead>
@@ -24,6 +25,18 @@
     <label>
         Name:
         <input type="text" id="playerName" required>
+    </label>
+    <br>
+    <label>
+        Rank:
+        <select id="playerRank" required>
+            <option value="">Select Rank</option>
+            <option value="1">AA</option>
+            <option value="2">A</option>
+            <option value="3">BB</option>
+            <option value="4">B</option>
+            <option value="5">C</option>
+        </select>
     </label>
     <br>
     <button type="submit">Save Player</button>
@@ -43,16 +56,17 @@
 
         players.forEach(p => {
             const row = document.createElement("tr");
-
             row.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.name}</td>
-            <td></td>
-        `;
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>${p.rank}</td>
+                <td></td>
+            `;
+
             const editBtn = document.createElement("button");
             editBtn.textContent = "Edit";
-            editBtn.addEventListener("click", () => editPlayer(p.id, p.name));
-            row.cells[2].appendChild(editBtn);
+            editBtn.addEventListener("click", () => editPlayer(p.id, p.name, p.rank));
+            row.cells[3].appendChild(editBtn);
 
             tbody.appendChild(row);
         });
@@ -61,6 +75,12 @@
     async function savePlayer(e) {
         e.preventDefault();
         const name = document.getElementById("playerName").value;
+        const rank = parseInt(document.getElementById("playerRank").value);
+
+        if (!rank) {
+            alert("Please select a rank.");
+            return;
+        }
 
         const method = editingId ? "PUT" : "POST";
         const url = editingId ? `${apiBase}/${editingId}` : apiBase;
@@ -68,17 +88,18 @@
         await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name })
+            body: JSON.stringify({ name, rank })
         });
 
         resetForm();
         loadPlayers();
     }
 
-    function editPlayer(id, name) {
+    function editPlayer(id, name, rank) {
         editingId = id;
         document.getElementById("playerId").value = id;
         document.getElementById("playerName").value = name;
+        document.getElementById("playerRank").value = rank;
         document.getElementById("formTitle").textContent = "Edit Player";
         document.getElementById("cancelEdit").style.display = "inline";
     }

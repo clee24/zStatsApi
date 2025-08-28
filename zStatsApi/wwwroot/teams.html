@@ -3,15 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Teams</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 60%;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
 <h1>Teams</h1>
 
-<table border="1" id="teamsTable">
+<table id="teamsTable">
     <thead>
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Rank</th>
     </tr>
     </thead>
     <tbody></tbody>
@@ -21,27 +36,35 @@
     const apiBase = "/teams";
 
     async function loadTeams() {
-        const res = await fetch(apiBase);
-        if (!res.ok) {
-            alert("Failed to load teams");
-            return;
+        try {
+            /**
+             * @type {{id: number, name: string, rankLabel: string}[]}
+             */
+            const teams = await (await fetch(apiBase)).json();
+
+            console.log("Teams from API:", teams);
+
+            const tbody = document.querySelector("#teamsTable tbody");
+            tbody.innerHTML = "";
+
+            teams.forEach(team => {
+                const row = document.createElement("tr");
+
+                const rank = team.rankLabel ?? "—";
+
+                row.innerHTML = `
+                    <td>${team.id}</td>
+                    <td>${team.name}</td>
+                    <td>${rank}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (err) {
+            console.error("Failed to load teams:", err);
+            alert("Could not load teams, please try again later.");
         }
-
-        const teams = await res.json();
-        const tbody = document.querySelector("#teamsTable tbody");
-        tbody.innerHTML = "";
-
-        teams.forEach(team => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-            <td>${team.id}</td>
-            <td>${team.name}</td>
-        `;
-            tbody.appendChild(row);
-        });
     }
 
-    // Initial load
     loadTeams();
 </script>
 </body>

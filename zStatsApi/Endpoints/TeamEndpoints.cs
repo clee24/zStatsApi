@@ -17,9 +17,17 @@ public static class TeamEndpoints
             .WithParameterValidation();
         
         // GET /teams
-        group.MapGet("/", (ZStatsContext dbContext) => 
-            dbContext.Teams
-                .Select(team => team.ToDto()));
+        group.MapGet("/", (ZStatsContext dbContext) =>
+        {
+            var teams = dbContext.Teams
+                .Include(t => t.TeamPlayers)
+                .ThenInclude(tp => tp.Player)
+                .ToList(); 
+            
+            var dtos = teams.Select(team => team.ToDto()).ToList();
+
+            return dtos;
+        });
         
         // GET /teams/id
         group.MapGet("/{id}", async (int id, ZStatsContext dbContext) =>
