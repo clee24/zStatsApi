@@ -19,6 +19,7 @@ public static class PlayerMapping
         {
             Id = id,
             Name = player.Name,
+            Rank = player.Rank
         };
     }
 
