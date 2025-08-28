@@ -4,5 +4,6 @@ namespace zStatsApi.Dtos.Player;
 
 public record PlayerDto(
     int Id,
-    string Name
+    string Name,
+    int Rank
 );

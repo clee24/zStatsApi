@@ -26,7 +26,8 @@ public static class PlayerMapping
     {
         return new PlayerDto(
             player.Id,
-            player.Name
+            player.Name,
+            player.Rank
         );
     }
 }

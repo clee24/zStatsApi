@@ -67,10 +67,10 @@ public class ZStatsContext(DbContextOptions<ZStatsContext> options) : DbContext(
 
         // Players
         modelBuilder.Entity<Player>().HasData(
-            new Player { Id = 1, Name = "Chris" },
-            new Player { Id = 2, Name = "Trinity" },
-            new Player { Id = 3, Name = "Zey" },
-            new Player { Id = 4, Name = "Jimmy" }
+            new Player { Id = 1, Name = "Chris", Rank = 3},
+            new Player { Id = 2, Name = "Trinity", Rank = 2},
+            new Player { Id = 3, Name = "Zey", Rank = 1},
+            new Player { Id = 4, Name = "Jimmy", Rank = 1}
         );
 
         // TeamPlayers (Many-to-many)
