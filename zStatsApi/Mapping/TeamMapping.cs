@@ -1,5 +1,6 @@
 using zStatsApi.Dtos.Team;
 using zStatsApi.Entities;
+using zStatsApi.Services;
 
 namespace zStatsApi.Mapping;
 
@@ -26,7 +27,8 @@ public static class TeamMapping
     {
         return new TeamDto(
             team.Id,
-            team.Name
+            team.Name,
+            RankHelper.GetTeamRankLabel(team.TeamPlayers.Select(tp => tp.Player.Rank))
         );
     }
 }
